@@ -1,0 +1,86 @@
+import random, os, sys, time
+from datetime import datetime, timedelta, date
+
+def rand24Gen():
+    return int(round(random.random()*random.random()*24,0))
+
+def time_plus(time, seconds=0, minutes=0, hours=0, days=0):
+    tmd = timedelta(seconds=seconds, minutes=minutes, hours=hours, days=days)
+    start = datetime(
+        2000, 1, 1,
+        hour=time.hour, minute=time.minute, second=time.second)
+    end = start + tmd
+    return end.time()
+
+def datetime_diff(start, end):
+    higherDate = end
+    lowerDate = start
+    if (start>end):
+        higherDate = start
+        lowerDate = end
+    return datetime.combine(date.min, higherDate) - datetime.combine(date.min, lowerDate)
+
+def randTimeGen():
+    #print random.random()
+    now = datetime.now().time()
+    #print now
+    now_hour = int(datetime.now().time().hour)
+    now_hour = 0
+    assumed_runtime = 1 #hour
+    prof_count = 2 #number of profiles
+    while(prof_count>0):
+        #Extracting current hour of day and using to determine how many hours left in the day
+        eodDiff = 24-now_hour
+        #Add the total runtime hours from number of hours left in day from end of the day for the mod time we can use
+        totRunTimeLeft = assumed_runtime*prof_count
+        modHours = eodDiff-totRunTimeLeft
+        sleepHours = 0
+        randAdd = rand24Gen()
+        #Set criteria for start of cron job at midnight (now_hour<=1) so that the randomly added time is not between 2am & 8am
+        if(now_hour <= 1 and ((now_hour + randAdd)>=2 and (now_hour + randAdd)<=8)):
+            sleepHours = (randAdd+8) #% (modHours-8) #Just in case we have a lot of profiles, need to mod for
+            print("Restricted Hit")
+        else:
+            if(modHours>0):
+                sleepHours = (now_hour + randAdd) % modHours
+            else:
+                sleepHours = now_hour + randAdd
+        #time.sleep(sleepHours)
+        now_hour = now_hour + sleepHours
+        #print("ModHours:",modHours)
+        #print("SleepHours:",sleepHours)
+        print("NowHour:", now_hour)
+        print('\n')
+        #now_hour = now_hour + modHours
+        prof_count = prof_count - 1
+
+
+    print(now_hour)
+
+    minutes = timedelta(hours = 0, minutes=12, seconds = 13)
+    added = time_plus(now,14,12)
+    #print added
+    #print(datetime_diff(added, now))
+    #print(int(added.hour))
+
+
+    '''
+    ===To-Do===
+    1. Develop strategy for determining time between searches
+    2. Develop scheduling system to run searching scripts for a day
+    '''
+    return 0
+
+randTimeGen()
+
+def rand24Gen():
+    return round(random.random()*random.random()*24,0)
+
+'''
+-Cron job starts at 12am
+-Python script runs a for loop over the firefox profiles. Assume runtime period of 1 hour. Midnight of next day-Scheduled time must be >=
+profile runtime*(number of profiles left, including current profile). We can just use a mod operator for this calculation along with a random time generator. random time generator
+
+12am-1am
+8am-10pm
+'''
